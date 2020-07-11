@@ -33,4 +33,8 @@ namespace Logic.CS.BusinessLogic.Adthena
             HttpContext.Current.Session.Remove(key);
         }
     }
+    //Usage
+    // SessionManagement.SaveOrUpdateSession(StringConstant.INFRINGEMENTGRID_SESSION, model); e.g model is List<InfringementGrid>
+    //var infringementGrid = SessionManagement.GetSession<List<InfringementGrid>>(StringConstant.INFRINGEMENTGRID_SESSION);
+                   
 }
