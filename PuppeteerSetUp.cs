@@ -2,6 +2,9 @@
                     // simple setup and 
                     //this is suitable if you are going to use it from web. By default it launches Chromium browser and everything needed for it will be downloaded to 
                     // folder .local-chromium inside project's Bin folder.
+                    // string[] argument = { "--no-sandbox" , "--disable-setuid-sandbox" };
+                    //string[] ignoredDefaultArgs = { "--disable-extensions" };
+                    //
                     string[] argument = { "--no-sandbox" };
                     await new BrowserFetcher().DownloadAsync(BrowserFetcher.DefaultRevision);
                     var browser = await Puppeteer.LaunchAsync(new LaunchOptions
