@@ -126,7 +126,94 @@
     }
 }
                     
-                    
+                    /// revised version
+    public class BrowseRequest
+    {
+        public async Task<BrowserStatus> GetHtmlContentAsync(Browser browser, string url, string userAgent = null, int pageLoadWaiting = 0, int pageRequestTimeOut = 30000, bool loadImage = false, string waitingPath = null, string waitUntilNav = null)
+        {
+            var status = new BrowserStatus();
+            try
+            {
+                if (string.IsNullOrEmpty(userAgent))
+                    userAgent = Constant.COMMON_USER_AGENT;
+
+                var page = await browser.NewPageAsync();
+                page.DefaultTimeout = pageRequestTimeOut;
+                await page.SetJavaScriptEnabledAsync(true);
+                await page.SetUserAgentAsync(userAgent);
+                //Disabling image helps webpage render faster but in some cases we need images
+                if (!loadImage)
+                {
+                    await page.SetRequestInterceptionAsync(true);
+                    page.Request += (sender, e) =>
+                    {
+                        if (e.Request.ResourceType == ResourceType.Image)
+                            e.Request.AbortAsync();
+                        else
+                            e.Request.ContinueAsync();
+                    };
+                }
+
+                // await page.GoToAsync(url,WaitUntilNavigation.DOMContentLoaded);
+                if (string.IsNullOrWhiteSpace(waitUntilNav))
+                    await page.GoToAsync(url);
+                else
+                    await page.GoToAsync(url, GetWaitUntilNavigation(waitUntilNav));
+
+                //if (pageLoadWaiting > 0)
+                //    await page.WaitForTimeoutAsync(pageLoadWaiting);
+                if (!string.IsNullOrEmpty(waitingPath))
+                    await page.WaitForSelectorAsync(waitingPath, new WaitForSelectorOptions { Timeout = 10000 });
+              // sometimes keeping waiting time more (10000 in above line) gives error like
+              //Protocol error(Runtime.callFunctionOn): Target closed. (NetworkManager failed to process Fetch.requestPaused. Value cannot be null.
+              //Navigation failed because browser has disconnected! (NetworkManager failed to process Fetch.requestPaused. Value cannot be null.
+              //  10000 is perfect wait time for one site but this may vary depends on sites. Test out changing values to find the perfect fit.
+
+                var htmlDoc = await page.GetContentAsync();
+                status.TargetUrl = page.Target.Url;
+                await page.CloseAsync();
+                status.status = true;
+                status.StatusCode = 200;
+                status.HtmlDocument = htmlDoc;
+            }
+            catch (Exception ex)
+            {
+                status.status = false;
+                CheckErrorType(ex, status);
+                status.HtmlDocument = null;
+                status.StatusMessage = ex.Message;
+
+            }
+            return status;
+        }
+        public void CheckErrorType(Exception ex, BrowserStatus status)
+        {
+            var exceptionMessage = ex.Message;
+            //page is loaded but x-path could not be found
+            if (exceptionMessage.StartsWith("waiting for selector"))
+                status.StatusCode = 910;
+            //page cannot be loaded
+            else if (exceptionMessage.StartsWith("Timeout of"))
+                status.StatusCode = 911;
+            //other kind of error occured
+            else
+                status.StatusCode = 912;
+
+
+        }
+        public WaitUntilNavigation GetWaitUntilNavigation(string wait)
+        {
+            if (wait.ToLower() == "load")
+                return WaitUntilNavigation.Load;
+            else if (wait.ToLower() == "idle0")
+                return WaitUntilNavigation.Networkidle0;
+            else if (wait.ToLower() == "idle2")
+                return WaitUntilNavigation.Networkidle2;
+            else
+                return WaitUntilNavigation.DOMContentLoaded;
+
+        }
+    }
                     
                     
                     
