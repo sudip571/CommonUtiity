@@ -595,4 +595,39 @@
             }
             return colLetter;
         }
+     
+     
+     //getting dynamic data
+                     //var p = new object[]
+                //{
+                //    new SqlParameter("@ClientId", SqlDbType.Int) {Value = clientId},
+                //    new SqlParameter("@DomainId", SqlDbType.Int) {Value = domainId},
+                //    new SqlParameter("@Frequency", SqlDbType.Int) {Value = frequency},
+                //    new SqlParameter("@FromDate", SqlDbType.DateTime) {Value = startDate},
+                //    new SqlParameter("@ToDate", SqlDbType.DateTime) {Value = endDate},
+                //    new SqlParameter("@CountryCode", SqlDbType.VarChar) {Value = countryCode},
+                //    new SqlParameter("@SearchEngineId", SqlDbType.Int) {Value = 1},
+                //    new SqlParameter("@BucketId", SqlDbType.Int) {Value = 0}
+                //};
+      //Getting data from storedprocedure and binding those values dynamically on Dictionary
+                //var context = new MyDbContext()
+                //var cmd = context.Database.Connection.CreateCommand();
+                List<Dictionary<string, object>> items = new List<Dictionary<string, object>>();
+                var uow = new UoW();
+                var context = uow.getContext();
+                context.Database.Connection.Open();
+                var cmd = context.Database.Connection.CreateCommand();
+                cmd.CommandText = @"[web].[GetRankingSnapshotExcelReportBySQLScriptForGoogleDataStudio]";
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddRange(p);
+                
+                var reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    Dictionary<string, object> item = new Dictionary<string, object>();
+
+                    for (int i = 0; i < reader.FieldCount; i++)
+                        item[reader.GetName(i)] = (reader[i]);
+                    items.Add(item);
+                }
     }
