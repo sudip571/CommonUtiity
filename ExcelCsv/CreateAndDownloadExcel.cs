@@ -40,7 +40,25 @@
                         var bytes = memoryStream.ToArray();
                         return bytes;
                     }
+                        // save excelworkbook to given filepath
+                        // var fullPath = $@"C:\\FlightdeckLog\\EcommQueue\\MonthlyReport\\hahaazq-{DateTime.Now.ToString("yyyy-MM-dd")}.csv";
+                        //var fullPath = $@"C:\\FlightdeckLog\\EcommQueue\\MonthlyReport\\EcomReport-{clientId}-{DateTime.Now.ToString("yyyy-MM-dd")}.xlsx";
+                       // var fileInfo = new FileInfo(fullPath);
+                       // if (!fileInfo.Directory.Exists)
+                       //     fileInfo.Directory.Create();
+                       // if (!File.Exists(fullPath))
+                       // {
+                       //     File.Create(fullPath).Close();
+                       // }
 
+                        //excelWorkBook.SaveAs(fullPath);
+
+                        //Converting worksheet into CSV format and saving it to given path
+                        //var lastCellAddress = workSheet.RangeUsed().LastCell().Address;
+                        //System.IO.File.WriteAllLines(fullPath, workSheet.Rows(1, lastCellAddress.RowNumber)
+                        //    .Select(row => String.Join(",", row.Cells(1, lastCellAddress.ColumnNumber)
+                        //        .Select(cell => cell.GetValue<string>()))
+                        //   ));
                 }
             }
             catch (Exception ex)
