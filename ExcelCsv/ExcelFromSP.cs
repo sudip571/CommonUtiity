@@ -160,3 +160,66 @@ public static string CreateCSVFile(IUoW uow, int clientId, long? DomainId, DateT
             }
             return colLetter;
         }
+
+public static SqlStatus BulkCopy(string destinationTable, DataTable table)
+        {
+
+            try
+            {
+                var connectionString = ConfigurationManager.ConnectionStrings["internaltoolsetEntities"].ConnectionString;
+                connectionString = EFConnectionToADOConnection(connectionString);
+                 var status = new SqlStatus();
+                var timer = new Stopwatch();
+                timer.Start();
+                using (var connection = new SqlConnection(connectionString))
+                {
+                    connection.Open();
+                    using (var transaction = connection.BeginTransaction())
+                    {
+                        try
+                        {
+                            using (var bulkCopy = new SqlBulkCopy(connectionString))
+                            {
+                                //if (table.Rows.Count > 5000)
+                                //{
+                                //    bulkCopy.BatchSize = 5000;
+                                //    bulkCopy.BulkCopyTimeout = 0;
+                                //}
+                                bulkCopy.BatchSize = 2000;
+                                bulkCopy.BulkCopyTimeout = 0;
+                                bulkCopy.DestinationTableName = destinationTable;
+                                bulkCopy.WriteToServer(table);
+                            }
+                            transaction.Commit();
+                            status.HasError = false;
+                            status.Message = "Successfully inserted all data";
+                        }
+                        catch (Exception ex)
+                        {
+                            transaction.Rollback();
+                            status.HasError = true;
+                            status.Message = ex.Message;
+                        }
+                        timer.Stop();
+                        status.TimeTaken = timer.Elapsed.TotalSeconds;
+                        return status;
+                    }
+                }
+
+            }
+            catch (Exception ex)
+            {
+
+                throw;
+            }
+        }
+        public static string EFConnectionToADOConnection(string connectionString)
+        {
+            //EF connectionString starts with 'metadata='
+            if (connectionString.ToLower().StartsWith("metadata="))
+            {
+                EntityConnectionStringBuilder efBuilder = new EntityConnectionStringBuilder(connectionString);
+                connectionString = efBuilder.ProviderConnectionString;
+            }
+            return connectionString;
+        }
